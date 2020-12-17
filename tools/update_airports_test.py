@@ -13,12 +13,16 @@ class UpdateAirportsTest(unittest.TestCase):
 
   # Test cases that do nothing
 
-  def testClosed(self):
+  def testIgnoreClosed(self):
     oa = {'type': 'closed'}
     self.assertEquals(self.ofd.match(None, oa), False)
 
-  def testNewSmallAirport(self):
+  def testIgnoreNewSmallAirport(self):
     oa = {'type': 'small_airport', 'ident': 'NEWA'}
+    self.assertEquals(self.ofd.match(None, oa), False)
+
+  def testIgnoreJunkData(self):
+    oa = {'type': 'medium_airport', 'ident': 'ABCD', 'latitude_deg': '0'}
     self.assertEquals(self.ofd.match(None, oa), False)
 
   # Test cases that update OpenFlights from OurAirports
@@ -30,6 +34,11 @@ class UpdateAirportsTest(unittest.TestCase):
 
   def testIcaoMatchEmptyIata(self):
     oa = {'type': 'medium_airport', 'iata_code': '', 'ident': 'ABCD', 'iso_country': 'AX', 'name': 'Ayebeesee Intl Airport'}
+    self.assertEquals(self.ofd.match(self.fake_dbc, oa), True)
+    self.fake_dbc.update_all_from_oa.assert_called()
+
+  def testIcaoMatchIgnoreIdent(self):
+    oa = {'type': 'medium_airport', 'iata_code': '', 'gps_code': 'ABCD', 'ident': 'AA-0001', 'iso_country': 'AX', 'name': 'Ayebeesee Intl Airport'}
     self.assertEquals(self.ofd.match(self.fake_dbc, oa), True)
     self.fake_dbc.update_all_from_oa.assert_called()
 
